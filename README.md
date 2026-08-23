@@ -64,289 +64,1296 @@ FEATURES
 - Safety & Error Handling: Use `:Assert()` for guard clauses, or `:UnwrapOr()` / `:Unwrap()` for safe data retrieval.
 - Supported Types: Strings, Numbers, Booleans, Instances, Tables, and Functions.
 
-COMPLETE API REFERENCE
+# COMPLETE API REFERENCE
+========================
+
+This section explains every guard type and every function available in the Guard API.
+
+> **Note:** All examples below use Markdown code fences so they remain properly formatted when this README is viewed on GitHub, in a documentation viewer, or as Markdown-compatible text.
+
+---
+
+# 1. BASE FUNCTIONS
+===================
+
+Base functions work on any `Guard` and can be used before selecting a specific guard type.
+
+---
+
+## `:Exists([message])`
+
+Checks if the value is not `nil`.
+
+### Example
+
+```lua
+Guard(player):Exists():Assert()
+```
+
+---
+
+## `:Equals(expected, [message])`
+
+Checks if the value is equal to the expected value.
+
+### Example
+
+```lua
+Guard(status):Equals("Active"):IsValid()
+```
+
+---
+
+## `:NotEquals(expected, [message])`
+
+Checks if the value is **not** equal to the expected value.
+
+### Example
+
+```lua
+Guard(role):NotEquals("Banned"):IsValid()
+```
+
+---
+
+## `:OneOf(list, [message])`
+
+Checks if the value matches one of the items inside a list table.
+
+### Example
+
+```lua
+Guard(team):OneOf({"Red", "Blue"}):IsValid()
+```
+
+---
+
+## `:Optional()`
+
+If the value is `nil`, this skips all checks that come after it instead of failing.
+
+### Example
+
+```lua
+Guard(nickname)
+    :Optional()
+    .StringGuard
+    :MinLength(3)
+    :IsValid()
+```
+
+---
+
+## `:Default(fallback)`
+
+If the value is `nil`, this replaces it with a backup value and continues checking.
+
+### Example
+
+```lua
+Guard(score)
+    :Default(0)
+    .NumberGuard
+    :NonNegative()
+    :Unwrap()
+```
+
+---
+
+## `:Custom(predicateFn, [message])`
+
+Runs a custom validation function.
+
+The function should return `true` when the value is valid.
+
+### Example
+
+```lua
+Guard(num)
+    :Custom(function(v)
+        return v % 5 == 0
+    end)
+    :IsValid()
+```
+
+---
+
+## `:Transform(transformerFn)`
+
+Changes the current value using a transformation function.
+
+The transformed value becomes the value used by subsequent operations.
+
+### Example
+
+```lua
+Guard(text)
+    :Transform(function(v)
+        return v:lower()
+    end)
+    :Unwrap()
+```
+
+---
+
+## `:Type(expectedType, [message])`
+
+Checks the basic Lua type using `type()`.
+
+### Example
+
+```lua
+Guard(x)
+    :Type("string")
+    :IsValid()
+```
+
+---
+
+## `:TypeOf(expectedType, [message])`
+
+Checks the Roblox type using `typeof()`.
+
+This can be used for Roblox-specific types such as `"Instance"`, `"Vector3"`, `"CFrame"`, and others.
+
+### Example
+
+```lua
+Guard(part)
+    :TypeOf("Instance")
+    :IsValid()
+```
+
+---
+
+## `:IsValid()`
+
+Finalizer.
+
+Returns `true` if all validation checks passed.
+
+Returns `false` if any validation check failed.
+
+### Example
+
+```lua
+local ok = Guard(x)
+    :Exists()
+    :IsValid()
+```
+
+---
+
+## `:IsInvalid()`
+
+Finalizer.
+
+Returns `true` if any validation check failed.
+
+Returns `false` if all checks passed.
+
+### Example
+
+```lua
+local bad = Guard(x)
+    :Exists()
+    :IsInvalid()
+```
+
+---
+
+## `:Error()`
+
+Returns the first validation error message.
+
+### Example
+
+```lua
+local err = Guard(x)
+    :Exists()
+    :Error()
+```
+
+---
+
+## `:GetErrors()`
+
+Returns a list containing all validation error messages.
+
+### Example
+
+```lua
+local errors = Guard(x)
+    :Exists()
+    :GetErrors()
+```
+
+---
+
+## `:Assert([message])`
+
+Finalizer.
+
+Throws a script error immediately if validation fails.
+
+If validation succeeds, execution continues normally.
+
+### Example
+
+```lua
+Guard(health)
+    .NumberGuard
+    :NonNegative()
+    :Assert("Health cannot be negative!")
+```
+
+---
+
+## `:Unwrap()`
+
+Finalizer.
+
+Returns the final validated value if validation succeeds.
+
+Throws an error if validation fails.
+
+### Example
+
+```lua
+local safeValue = Guard(input)
+    :Exists()
+    :Unwrap()
+```
+
+---
+
+## `:UnwrapOr(fallback)`
+
+Finalizer.
+
+Returns the final value if validation succeeds.
+
+Returns the supplied fallback value if validation fails.
+
+### Example
+
+```lua
+local final = Guard(input)
+    .StringGuard
+    :MinLength(3)
+    :UnwrapOr("Guest")
+```
+
+---
+
+# 2. STRING GUARD
+================
+
+Accessed using:
+
+```lua
+Guard(value).StringGuard
+```
+
+Used for validating strings and text.
+
+---
+
+## `:Length(min, max, [message])`
+
+Checks if the string length is between `min` and `max`.
+
+### Example
+
+```lua
+Guard(name)
+    .StringGuard
+    :Length(3, 10)
+    :IsValid()
+```
+
+---
+
+## `:MinLength(min, [message])`
+
+Checks if the string has at least `min` characters.
+
+### Example
+
+```lua
+Guard(name)
+    .StringGuard
+    :MinLength(3)
+    :IsValid()
+```
+
+---
+
+## `:MaxLength(max, [message])`
+
+Checks if the string has no more than `max` characters.
+
+### Example
+
+```lua
+Guard(bio)
+    .StringGuard
+    :MaxLength(100)
+    :IsValid()
+```
+
+---
+
+## `:Empty([message])`
+
+Checks if the string is completely empty.
+
+```lua
+Guard(input)
+    .StringGuard
+    :Empty()
+    :IsValid()
+```
+
+---
+
+## `:NotEmpty([message])`
+
+Checks if the string is not empty.
+
+### Example
+
+```lua
+Guard(input)
+    .StringGuard
+    :NotEmpty()
+    :IsValid()
+```
+
+---
+
+## `:Pattern(luaPattern, [message])`
+
+Checks if the string matches a Lua pattern.
+
+### Example
+
+```lua
+Guard(email)
+    .StringGuard
+    :Pattern("^[%w]+@[%w]+%.[%w]+$")
+    :IsValid()
+```
+
+---
+
+## `:Contains(substring, [message])`
+
+Checks if the string contains the specified substring.
+
+### Example
+
+```lua
+Guard(chat)
+    .StringGuard
+    :Contains("hello")
+    :IsValid()
+```
+
+---
+
+## `:StartsWith(prefix, [message])`
+
+Checks if the string starts with the specified prefix.
+
+### Example
+
+```lua
+Guard(command)
+    .StringGuard
+    :StartsWith("!")
+    :IsValid()
+```
+
+---
+
+## `:EndsWith(suffix, [message])`
+
+Checks if the string ends with the specified suffix.
+
+### Example
+
+```lua
+Guard(filename)
+    .StringGuard
+    :EndsWith(".png")
+    :IsValid()
+```
+
+---
+
+## `:Alpha([message])`
+
+Checks if the string contains only alphabetic characters.
+
+### Example
+
+```lua
+Guard(word)
+    .StringGuard
+    :Alpha()
+    :IsValid()
+```
+
+---
+
+## `:Numeric([message])`
+
+Checks if the string contains only numeric characters (`0-9`).
+
+### Example
+
+```lua
+Guard(pin)
+    .StringGuard
+    :Numeric()
+    :IsValid()
+```
+
+---
+
+## `:Alphanumeric([message])`
+
+Checks if the string contains only letters and numbers.
+
+### Example
+
+```lua
+Guard(username)
+    .StringGuard
+    :Alphanumeric()
+    :IsValid()
+```
+
+---
+
+## `:Lowercase([message])`
+
+Checks if all letters in the string are lowercase.
+
+### Example
+
+```lua
+Guard(code)
+    .StringGuard
+    :Lowercase()
+    :IsValid()
+```
+
+---
+
+## `:Uppercase([message])`
+
+Checks if all letters in the string are uppercase.
+
+### Example
+
+```lua
+Guard(flag)
+    .StringGuard
+    :Uppercase()
+    :IsValid()
+```
+
+---
+
+# 3. NUMBER GUARD
+================
+
+Accessed using:
+
+```lua
+Guard(value).NumberGuard
+```
+
+Used for validating numbers.
+
+---
+
+## `:Range(min, max, [message])`
+
+Checks if the number is between `min` and `max`.
+
+### Example
+
+```lua
+Guard(level)
+    .NumberGuard
+    :Range(1, 99)
+    :IsValid()
+```
+
+---
+
+## `:GreaterThan(value, [message])`
+
+Checks if the number is greater than the specified value.
+
+### Example
+
+```lua
+Guard(score)
+    .NumberGuard
+    :GreaterThan(10)
+    :IsValid()
+```
+
+---
+
+## `:LessThan(value, [message])`
+
+Checks if the number is less than the specified value.
+
+### Example
+
+```lua
+Guard(price)
+    .NumberGuard
+    :LessThan(50)
+    :IsValid()
+```
+
+---
+
+## `:Integer([message])`
+
+Checks if the number is a whole number with no decimal component.
+
+### Example
+
+```lua
+Guard(count)
+    .NumberGuard
+    :Integer()
+    :IsValid()
+```
+
+---
+
+## `:Positive([message])`
+
+Checks if the number is greater than `0`.
+
+### Example
+
+```lua
+Guard(money)
+    .NumberGuard
+    :Positive()
+    :IsValid()
+```
+
+---
+
+## `:Negative([message])`
+
+Checks if the number is less than `0`.
+
+### Example
+
+```lua
+Guard(temp)
+    .NumberGuard
+    :Negative()
+    :IsValid()
+```
+
+---
+
+## `:NonNegative([message])`
+
+Checks if the number is greater than or equal to `0`.
+
+### Example
+
+```lua
+Guard(attempts)
+    .NumberGuard
+    :NonNegative()
+    :IsValid()
+```
+
+---
+
+## `:Even([message])`
+
+Checks if the number is even.
+
+### Example
+
+```lua
+Guard(x)
+    .NumberGuard
+    :Even()
+    :IsValid()
+```
+
+---
+
+## `:Odd([message])`
+
+Checks if the number is odd.
+
+### Example
+
+```lua
+Guard(x)
+    .NumberGuard
+    :Odd()
+    :IsValid()
+```
+
+---
+
+## `:MultipleOf(n, [message])`
+
+Checks if the number is evenly divisible by `n`.
+
+### Example
+
+```lua
+Guard(points)
+    .NumberGuard
+    :MultipleOf(5)
+    :IsValid()
+```
+
+---
+
+## `:Finite([message])`
+
+Checks that the number is finite and is not infinity or `NaN`.
+
+### Example
+
+```lua
+Guard(value)
+    .NumberGuard
+    :Finite()
+    :IsValid()
+```
+
+---
+
+# 4. BOOLEAN GUARD
+=================
+
+Accessed using:
+
+```lua
+Guard(value).BooleanGuard
+```
+
+Used for validating boolean values.
+
+---
+
+## `:True([message])`
+
+Checks if the value is strictly `true`.
+
+### Example
+
+```lua
+Guard(isReady)
+    .BooleanGuard
+    :True()
+    :IsValid()
+```
+
+---
+
+## `:False([message])`
+
+Checks if the value is strictly `false`.
+
+### Example
+
+```lua
+Guard(isDead)
+    .BooleanGuard
+    :False()
+    :IsValid()
+```
+
+---
+
+# 5. INSTANCE GUARD
+===================
+
+Accessed using:
+
+```lua
+Guard(value).InstanceGuard
+```
+
+Used for validating Roblox `Instance` objects such as Parts, Players, Models, Tools, Folders, and other Roblox objects.
+
+---
+
+## `:IsA(className, [message])`
+
+Checks if the object belongs to the specified Roblox class.
+
+### Example
+
+```lua
+Guard(item)
+    .InstanceGuard
+    :IsA("Tool")
+    :IsValid()
+```
+
+---
+
+## `:Has(childName, [expected], [message])`
+
+Checks if the instance contains a child with the specified name.
+
+The optional `expected` argument can be used to validate the expected value or type of the child.
+
+### Example
+
+```lua
+Guard(character)
+    .InstanceGuard
+    :Has("Humanoid")
+    :IsValid()
+```
+
+---
+
+## `:Child(childName, [recursive], [message])`
+
+Finds a child inside the instance and switches the guard's focus to that child.
+
+### Example
+
+```lua
+local handle = Guard(sword)
+    .InstanceGuard
+    :Child("Handle")
+    .Value
+```
+
+---
+
+## `:Parent(expectedInstance, [recursive], [message])`
+
+Checks whether the instance has the expected parent.
+
+### Example
+
+```lua
+Guard(part)
+    .InstanceGuard
+    :Parent(workspace)
+    :IsValid()
+```
+
+---
+
+## `:Attribute(attributeName, [expected], [message])`
+
+Checks whether the instance contains the specified attribute.
+
+The optional `expected` argument can be used to check the attribute's value.
+
+### Example
+
+```lua
+Guard(model)
+    .InstanceGuard
+    :Attribute("Health", 100)
+    :IsValid()
+```
+
+---
+
+## `:Named(name, [message])`
+
+Checks whether the instance's `Name` property matches the supplied name.
+
+### Example
+
+```lua
+Guard(part)
+    .InstanceGuard
+    :Named("SpawnLocation")
+    :IsValid()
+```
+
+---
+
+## `:Tag(tagName, [message])`
+
+Checks whether the instance has the specified CollectionService tag.
+
+### Example
+
+```lua
+Guard(enemy)
+    .InstanceGuard
+    :Tag("Monster")
+    :IsValid()
+```
+
+---
+
+# 6. TABLE GUARD
+===============
+
+Accessed using:
+
+```lua
+Guard(value).TableGuard
+```
+
+Used for validating Lua tables, including arrays and dictionaries.
+
+---
+
+## `:Has(keyName, [expected], [message])`
+
+Checks whether the table contains the specified key.
+
+### Example
+
+```lua
+Guard(data)
+    .TableGuard
+    :Has("Username")
+    :IsValid()
+```
+
+---
+
+## `:Length(min, max, [message])`
+
+Counts the entries in the table and checks whether the count is between `min` and `max`.
+
+### Example
+
+```lua
+Guard(inventory)
+    .TableGuard
+    :Length(1, 10)
+    :IsValid()
+```
+
+---
+
+## `:MinLength(min, [message])`
+
+Checks whether the table contains at least `min` entries.
+
+### Example
+
+```lua
+Guard(settings)
+    .TableGuard
+    :MinLength(1)
+    :IsValid()
+```
+
+---
+
+## `:MaxLength(max, [message])`
+
+Checks whether the table contains no more than `max` entries.
+
+### Example
+
+```lua
+Guard(list)
+    .TableGuard
+    :MaxLength(5)
+    :IsValid()
+```
+
+---
+
+## `:Empty([message])`
+
+Checks whether the table contains zero entries.
+
+### Example
+
+```lua
+Guard(cache)
+    .TableGuard
+    :Empty()
+    :IsValid()
+```
+
+---
+
+## `:NotEmpty([message])`
+
+Checks whether the table contains at least one entry.
+
+### Example
+
+```lua
+Guard(teamList)
+    .TableGuard
+    :NotEmpty()
+    :IsValid()
+```
+
+---
+
+## `:IsArray([message])`
+
+Checks whether the table is a normal numbered array rather than a dictionary.
+
+### Example
+
+```lua
+Guard(items)
+    .TableGuard
+    :IsArray()
+    :IsValid()
+```
+
+---
+
+## `:Each(validatorFn, [message])`
+
+Runs a custom validation function against every item in the table.
+
+Every item must pass the validator function.
+
+### Example
+
+```lua
+Guard(prices)
+    .TableGuard
+    :Each(function(v)
+        return v > 0
+    end)
+    :IsValid()
+```
+
+---
+
+## `:Frozen([message])`
+
+Checks whether the table has been frozen using `table.freeze()`.
+
+### Example
+
+```lua
+Guard(config)
+    .TableGuard
+    :Frozen()
+    :IsValid()
+```
+
+---
+
+# 7. FUNCTION GUARD
+==================
+
+Accessed using:
+
+```lua
+Guard(value).FunctionGuard
+```
+
+Used for validating Lua functions.
+
+---
+
+## `:Callable([message])`
+
+Checks whether the value is a callable function.
+
+### Example
+
+```lua
+Guard(callback)
+    .FunctionGuard
+    :Callable()
+    :IsValid()
+```
+
+---
+
+## `:Arity(expectedCount, [message])`
+
+Checks how many parameters the function is configured to accept.
+
+### Example
+
+```lua
+Guard(myFunc)
+    .FunctionGuard
+    :Arity(2)
+    :IsValid()
+```
+
+---
+
+# QUICK REFERENCE
+=================
+
+| Guard Type | Accessor | Purpose |
+|---|---|---|
+| Base | `Guard(value)` | General-purpose validation |
+| String | `.StringGuard` | Validate strings |
+| Number | `.NumberGuard` | Validate numbers |
+| Boolean | `.BooleanGuard` | Validate booleans |
+| Instance | `.InstanceGuard` | Validate Roblox Instances |
+| Table | `.TableGuard` | Validate tables |
+| Function | `.FunctionGuard` | Validate functions |
+
+---
+
+# COMMON VALIDATION PATTERNS
+============================
+
+## Basic Validation
+
+A simple validation chain can look like this:
+
+```lua
+local valid = Guard(username)
+    :Exists()
+    .StringGuard
+    :NotEmpty()
+    :IsValid()
+```
+
+---
+
+## Multiple Checks
+
+Multiple checks can be chained together.
+
+```lua
+local valid = Guard(username)
+    :Exists()
+    .StringGuard
+    :NotEmpty()
+    :MinLength(3)
+    :MaxLength(20)
+    :Alphanumeric()
+    :IsValid()
+```
+
+---
+
+## Getting the Validated Value
+
+Use `:Unwrap()` when you want to retrieve the value after validation.
+
+```lua
+local username = Guard(input)
+    :Exists()
+    .StringGuard
+    :NotEmpty()
+    :Unwrap()
+```
+
+If validation fails, `:Unwrap()` throws an error.
+
+---
+
+## Using a Fallback
+
+Use `:UnwrapOr()` when you want a fallback value instead of an error.
+
+```lua
+local username = Guard(input)
+    :Exists()
+    .StringGuard
+    :NotEmpty()
+    :UnwrapOr("Guest")
+```
+
+---
+
+## Collecting Errors
+
+Use `:Error()` to retrieve the first validation error.
+
+```lua
+local errorMessage = Guard(input)
+    :Exists()
+    .StringGuard
+    :MinLength(3)
+    :Error()
+```
+
+Use `:GetErrors()` to retrieve all validation errors.
+
+```lua
+local errors = Guard(input)
+    :Exists()
+    .StringGuard
+    :MinLength(3)
+    :MaxLength(20)
+    :GetErrors()
+```
+
+---
+
+## Throwing on Validation Failure
+
+Use `:Assert()` when validation failure should immediately throw an error.
+
+```lua
+Guard(health)
+    :Exists()
+    .NumberGuard
+    :NonNegative()
+    :Assert("Health must be zero or greater.")
+```
+
+---
+
+# COMPLETE EXAMPLE
+==================
+
+The following example demonstrates how several guard features can be combined:
+
+```lua
+local function validatePlayerData(data)
+    return Guard(data)
+        :Exists()
+        .TableGuard
+        :NotEmpty()
+        :Has("Username")
+        :Has("Level")
+        :IsValid()
+end
+
+local playerData = {
+    Username = "Zachy",
+    Level = 25,
+}
+
+if validatePlayerData(playerData) then
+    print("Player data is valid!")
+else
+    print("Player data is invalid!")
+end
+```
+
+---
+
+# API SUMMARY
+=============
+
+## Base
+
+```text
+Exists
+Equals
+NotEquals
+OneOf
+Optional
+Default
+Custom
+Transform
+Type
+TypeOf
+IsValid
+IsInvalid
+Error
+GetErrors
+Assert
+Unwrap
+UnwrapOr
+```
+
+## StringGuard
+
+```text
+Length
+MinLength
+MaxLength
+Empty
+NotEmpty
+Pattern
+Contains
+StartsWith
+EndsWith
+Alpha
+Numeric
+Alphanumeric
+Lowercase
+Uppercase
+```
+
+## NumberGuard
+
+```text
+Range
+GreaterThan
+LessThan
+Integer
+Positive
+Negative
+NonNegative
+Even
+Odd
+MultipleOf
+Finite
+```
+
+## BooleanGuard
+
+```text
+True
+False
+```
+
+## InstanceGuard
+
+```text
+IsA
+Has
+Child
+Parent
+Attribute
+Named
+Tag
+```
+
+## TableGuard
+
+```text
+Has
+Length
+MinLength
+MaxLength
+Empty
+NotEmpty
+IsArray
+Each
+Frozen
+```
+
+## FunctionGuard
+
+```text
+Callable
+Arity
+```
+
+---
+
+# END OF API REFERENCE
 ======================
-
-This section explains every guard type and the functions you can use. 
-
-1. BASE FUNCTIONS (Works on any Guard)
---------------------------------------
-These can be used right after `Guard(value)` before picking a specific type.
-
-- :Exists([message])
-  Checks if the value is not nil.
-  Example: Guard(player):Exists():Assert()
-
-- :Equals(expected, [message])
-  Checks if the value is equal to the expected value.
-  Example: Guard(status):Equals("Active"):IsValid()
-
-- :NotEquals(expected, [message])
-  Checks if the value is NOT equal to the expected value.
-  Example: Guard(role):NotEquals("Banned"):IsValid()
-
-- :OneOf(list, [message])
-  Checks if the value matches one of the items inside a list table.
-  Example: Guard(team):OneOf({"Red", "Blue"}):IsValid()
-
-- :Optional()
-  If the value is nil, this skips all the checks that come after it instead of failing.
-  Example: Guard(nickname):Optional().StringGuard:MinLength(3):IsValid()
-
-- :Default(fallback)
-  If the value is nil, this replaces it with a backup value and keeps checking.
-  Example: Guard(score):Default(0).NumberGuard:NonNegative():Unwrap()
-
-- :Custom(predicateFn, [message])
-  Runs your own custom check function. Returns true if your function passes.
-  Example: Guard(num):Custom(function(v) return v % 5 == 0 end):IsValid()
-
-- :Transform(transformerFn)
-  Changes the value into something else using a function.
-  Example: Guard(text):Transform(function(v) return v:lower() end):Unwrap()
-
-- :Type(expectedType, [message])
-  Checks the basic Lua type (using type()).
-  Example: Guard(x):Type("string"):IsValid()
-
-- :TypeOf(expectedType, [message])
-  Checks the advanced Roblox type (using typeof(), like "Instance" or "Vector3").
-  Example: Guard(part):TypeOf("Instance"):IsValid()
-
-- :IsValid()
-  Finalizer. Returns true if all checks passed, or false if any failed.
-  Example: local ok = Guard(x):Exists():IsValid()
-
-- :IsInvalid()
-  Finalizer. Returns true if any check failed.
-  Example: local bad = Guard(x):Exists():IsInvalid()
-
-- :Error()
-  Returns the first error message if the check failed.
-  Example: local err = Guard(x):Exists():Error()
-
-- :GetErrors()
-  Returns a list of all error messages.
-  Example: local allErrs = Guard(x):GetErrors()
-
-- :Assert([message])
-  Finalizer. Throws a script error immediately if the checks failed.
-  Example: Guard(health):NumberGuard:NonNegative():Assert("Health cannot be negative!")
-
-- :Unwrap()
-  Finalizer. Returns the final value if it passed, or throws an error if it failed.
-  Example: local safeVal = Guard(input):Exists():Unwrap()
-
-- :UnwrapOr(fallback)
-  Finalizer. Returns the final value if it passed, or gives you a safe backup value if it failed.
-  Example: local final = Guard(input).StringGuard:MinLength(3):UnwrapOr("Guest")
-
-
-2. STRING GUARD (.StringGuard)
-------------------------------
-Used for checking text.
-
-- :Length(min, max, [message])
-  Checks if the text length is between min and max.
-  Example: Guard(name).StringGuard:Length(3, 10):IsValid()
-
-- :MinLength(min, [message])
-  Checks if the text is at least a certain length.
-  Example: Guard(name).StringGuard:MinLength(3):IsValid()
-
-- :MaxLength(max, [message])
-  Checks if the text is no longer than a certain limit.
-  Example: Guard(bio).StringGuard:MaxLength(100):IsValid()
-
-- :Empty([message])
-  Checks if the text is completely empty ("").
-  Example: Guard(input).StringGuard:Empty():IsValid()
-
-- :NotEmpty([message])
-  Checks if the text has actual characters in it.
-  Example: Guard(input).StringGuard:NotEmpty():IsValid()
-
-- :Pattern(luaPattern, [message])
-  Checks if the text matches a Lua pattern.
-  Example: Guard(email).StringGuard:Pattern("^[%w]+@[%w]+%.[%w]+$"):IsValid()
-
-- :Contains(substring, [message])
-  Checks if the text contains a specific word or letter.
-  Example: Guard(chat).StringGuard:Contains("hello"):IsValid()
-
-- :StartsWith(prefix, [message])
-  Checks if the text starts with specific letters.
-  Example: Guard(cmd).StringGuard:StartsWith("!"):IsValid()
-
-- :EndsWith(suffix, [message])
-  Checks if the text ends with specific letters.
-  Example: Guard(filename).StringGuard:EndsWith(".png"):IsValid()
-
-- :Alpha([message])
-  Checks if the text contains only letters (A-Z).
-  Example: Guard(word).StringGuard:Alpha():IsValid()
-
-- :Numeric([message])
-  Checks if the text contains only numbers (0-9).
-  Example: Guard(pin).StringGuard:Numeric():IsValid()
-
-- :Alphanumeric([message])
-  Checks if the text contains only letters and numbers.
-  Example: Guard(user).StringGuard:Alphanumeric():IsValid()
-
-- :Lowercase([message])
-  Checks if all letters are lowercase.
-  Example: Guard(code).StringGuard:Lowercase():IsValid()
-
-- :Uppercase([message])
-  Checks if all letters are uppercase.
-  Example: Guard(flag).StringGuard:Uppercase():IsValid()
-
-
-3. NUMBER GUARD (.NumberGuard)
-------------------------------
-Used for checking numbers.
-
-- :Range(min, max, [message])
-  Checks if the number is between min and max.
-  Example: Guard(level).NumberGuard:Range(1, 99):IsValid()
-
-- :GreaterThan(value, [message])
-  Checks if the number is bigger than value.
-  Example: Guard(score).NumberGuard:GreaterThan(10):IsValid()
-
-- :LessThan(value, [message])
-  Checks if the number is smaller than value.
-  Example: Guard(price).NumberGuard:LessThan(50):IsValid()
-
-- :Integer([message])
-  Checks if the number has no decimals (is a whole number).
-  Example: Guard(count).NumberGuard:Integer():IsValid()
-
-- :Positive([message])
-  Checks if the number is greater than 0.
-  Example: Guard(money).NumberGuard:Positive():IsValid()
-
-- :Negative([message])
-  Checks if the number is less than 0.
-  Example: Guard(temp).NumberGuard:Negative():IsValid()
-
-- :NonNegative([message])
-  Checks if the number is 0 or higher.
-  Example: Guard(attempts).NumberGuard:NonNegative():IsValid()
-
-- :Even([message])
-  Checks if the number is an even number.
-  Example: Guard(x).NumberGuard:Even():IsValid()
-
-- :Odd([message])
-  Checks if the number is an odd number.
-  Example: Guard(x).NumberGuard:Odd():IsValid()
-
-- :MultipleOf(n, [message])
-  Checks if the number can be cleanly divided by n.
-  Example: Guard(points).NumberGuard:MultipleOf(5):IsValid()
-
-- :Finite([message])
-  Checks if the number is a normal real number (not infinity or NaN).
-  Example: Guard(val).NumberGuard:Finite():IsValid()
-
-
-4. BOOLEAN GUARD (.BooleanGuard)
---------------------------------
-Used for checking true/false values.
-
-- :True([message])
-  Checks if the value is strictly true.
-  Example: Guard(isReady).BooleanGuard:True():IsValid()
-
-- :False([message])
-  Checks if the value is strictly false.
-  Example: Guard(isDead).BooleanGuard:False():IsValid()
-
-
-5. INSTANCE GUARD (.InstanceGuard)
-----------------------------------
-Used for checking Roblox workspace objects (Parts, Players, Models, etc.).
-
-- :IsA(className, [message])
-  Checks if the object is a specific Roblox class type.
-  Example: Guard(item).InstanceGuard:IsA("Tool"):IsValid()
-
-- :Has(childName, [expected], [message])
-  Checks if the instance has a child inside it. You can optionally check what kind of child it is.
-  Example: Guard(character).InstanceGuard:Has("Humanoid"):IsValid()
-
-- :Child(childName, [recursive], [message])
-  Picks a child object inside the instance and switches the guard's focus to that child!
-  Example: local handle = Guard(sword).InstanceGuard:Child("Handle").Value
-
-- :Parent(expectedInstance, [recursive], [message])
-  Checks who the parent object is.
-  Example: Guard(part).InstanceGuard:Parent(workspace):IsValid()
-
-- :Attribute(attributeName, [expected], [message])
-  Checks if an attribute exists on the instance.
-  Example: Guard(model).InstanceGuard:Attribute("Health", 100):IsValid()
-
-- :Named(name, [message])
-  Checks if the instance's Name property matches.
-  Example: Guard(part).InstanceGuard:Named("SpawnLocation"):IsValid()
-
-- :Tag(tagName, [message])
-  Checks if the instance has a CollectionService tag.
-  Example: Guard(enemy).InstanceGuard:Tag("Monster"):IsValid()
-
-
-6. TABLE GUARD (.TableGuard)
-----------------------------
-Used for checking tables (dictionaries and arrays).
-
-- :Has(keyName, [expected], [message])
-  Checks if a table has a specific key inside it.
-  Example: Guard(data).TableGuard:Has("Username"):IsValid()
-
-- :Length(min, max, [message])
-  Counts all keys in the table and checks the size.
-  Example: Guard(inventory).TableGuard:Length(1, 10):IsValid()
-
-- :MinLength(min, [message])
-  Checks if the table has at least a certain number of entries.
-  Example: Guard(settings).TableGuard:MinLength(1):IsValid()
-
-- :MaxLength(max, [message])
-  Checks if the table has no more than a certain number of entries.
-  Example: Guard(list).TableGuard:MaxLength(5):IsValid()
-
-- :Empty([message])
-  Checks if the table has zero items.
-  Example: Guard(cache).TableGuard:Empty():IsValid()
-
-- :NotEmpty([message])
-  Checks if the table has at least one item.
-  Example: Guard(teamList).TableGuard:NotEmpty():IsValid()
-
-- :IsArray([message])
-  Checks if the table is a normal numbered list (not a dictionary).
-  Example: Guard(items).TableGuard:IsArray():IsValid()
-
-- :Each(validatorFn, [message])
-  Loops through every item in the table to make sure they all pass your rule function.
-  Example: Guard(prices).TableGuard:Each(function(v) return v > 0 end):IsValid()
-
-- :Frozen([message])
-  Checks if the table is locked using table.freeze().
-  Example: Guard(config).TableGuard:Frozen():IsValid()
-
-
-7. FUNCTION GUARD (.FunctionGuard)
-----------------------------------
-Used for checking Lua functions.
-
-- :Callable([message])
-  Checks if the value is actually a function you can call.
-  Example: Guard(callback).FunctionGuard:Callable():IsValid()
-
-- :Arity(expectedCount, [message])
-  Checks how many parameters the function is set up to take.
-  Example: Guard(myFunc).FunctionGuard:Arity(2):IsValid()
